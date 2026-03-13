@@ -1,0 +1,19 @@
+{
+  "name": "sayuri-shop-bot",
+  "version": "1.0.0",
+  "description": "Bot Discord complet pour Sayuri Shop - Prefix + | Modération, Tickets, Embeds, Annonces, Giveaways",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "keywords": ["discord", "bot", "shop"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
+    "mongoose": "^8.0.0"
+  }
+}
