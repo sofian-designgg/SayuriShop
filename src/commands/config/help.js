@@ -39,7 +39,7 @@ export default {
       else if (['dmall'].includes(cmd.name)) folder = 'DM';
       else if (['gstart', 'gend', 'greroll', 'gsetchannel'].includes(cmd.name)) folder = 'Giveaway';
       else if (['stockchannel', 'stockmonitor', 'stock'].includes(cmd.name)) folder = 'Stock';
-      else if (['help'].includes(cmd.name)) folder = 'Config';
+      else if (['help', 'setup'].includes(cmd.name)) folder = 'Config';
       if (!cats[folder]) cats[folder] = [];
       cats[folder].push(`\`${prefix}${cmd.name}\` - ${cmd.description || ''}`);
     }
