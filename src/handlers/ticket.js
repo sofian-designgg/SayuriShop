@@ -28,8 +28,14 @@ export default {
     if (userTickets.size >= (tickets.maxTickets || 3)) {
       return interaction.editReply('❌ Tu as atteint le nombre maximum de tickets ouverts.');
     }
+
+    const btnIdx = interaction.customId.replace('ticket_create_', '');
+    const btnLabels = tickets.buttons && tickets.buttons.length > 0 ? tickets.buttons : ['Ouvrir un ticket'];
+    const typeLabel = btnLabels[parseInt(btnIdx, 10)] || 'ticket';
+    const safeName = typeLabel.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 20) || 'ticket';
+
     const channel = await interaction.guild.channels.create({
-      name: `ticket-${interaction.user.username}-${interaction.user.id.slice(-4)}`,
+      name: `ticket-${safeName}-${interaction.user.id.toString().slice(-4)}`,
       type: ChannelType.GuildText,
       parent: tickets.categoryId,
       permissionOverwrites: [
@@ -42,18 +48,30 @@ export default {
         }))
       ]
     });
+
+    const createdMsg = (tickets.createdMessage || 'Bonjour {user}, décris ta demande. Le support te répondra rapidement.')
+      .replace(/{user}/g, interaction.user.toString());
+
+    const shop = config.shop || {};
     const embed = new EmbedBuilder()
-      .setColor(0x5865f2)
-      .setTitle('Ticket créé')
-      .setDescription(`Bonjour ${interaction.user}, décris ta demande. Le support te répondra rapidement.`)
+      .setColor(shop.color || 0x5865f2)
+      .setTitle(`Ticket — ${typeLabel}`)
+      .setDescription(createdMsg)
+      .setFooter({ text: shop.name || 'Support' })
       .setTimestamp();
-    const row = new ActionRowBuilder().addComponents(
+
+    const row1 = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId(`ticket_claim_${channel.id}`)
+        .setLabel('Prendre en charge')
+        .setStyle(ButtonStyle.Success)
+        .setEmoji('✋'),
       new ButtonBuilder()
         .setCustomId(`ticket_close_${channel.id}`)
         .setLabel('Fermer le ticket')
         .setStyle(ButtonStyle.Danger)
     );
-    await channel.send({ content: `${interaction.user}`, embeds: [embed], components: [row] });
+    await channel.send({ content: `${interaction.user}`, embeds: [embed], components: [row1] });
     await interaction.editReply(`✅ Ticket créé : ${channel}`);
   },
 
@@ -85,6 +103,38 @@ export default {
     if (!interaction.replied) {
       await interaction.reply({ content: 'Ticket fermé.', ephemeral: true }).catch(() => {});
     }
+  },
+
+  async claim(interaction) {
+    const channelId = interaction.customId.replace('ticket_claim_', '');
+    const channel = interaction.guild.channels.cache.get(channelId);
+    if (!channel) {
+      return interaction.reply({ content: '❌ Salon introuvable.', ephemeral: true });
+    }
+    const config = await getGuildConfig(interaction.guild.id);
+    const tickets = config.tickets || {};
+    const isSupport = tickets.supportRoles?.some((rid) => interaction.member.roles.cache.has(rid));
+    if (!isSupport && !interaction.member.permissions.has('Administrator')) {
+      return interaction.reply({ content: '❌ Seuls les supports peuvent faire ça.', ephemeral: true });
+    }
+    const msg = await channel.messages.fetch({ limit: 5 }).then((msgs) => msgs.find((m) => m.author.bot && m.embeds.length));
+    if (msg && msg.components?.length) {
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`ticket_close_${channelId}`)
+          .setLabel('Fermer le ticket')
+          .setStyle(ButtonStyle.Danger)
+      );
+      await msg.edit({ components: [row] }).catch(() => {});
+    }
+    await channel.send({
+      embeds: [{
+        color: 0x57f287,
+        description: `✋ **Pris en charge par** ${interaction.user}`,
+        timestamp: new Date().toISOString()
+      }]
+    });
+    await interaction.reply({ content: '✅ Ticket pris en charge.', ephemeral: true });
   },
 
   async selectCategory(interaction) {

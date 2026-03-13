@@ -93,9 +93,12 @@ client.on('messageCreate', async (message) => {
 client.on('interactionCreate', async (interaction) => {
   if (interaction.isButton()) {
     try {
-      if (interaction.customId === 'ticket_create') {
+      if (interaction.customId.startsWith('ticket_create')) {
         const { default: ticketHandler } = await import('./handlers/ticket.js');
         await ticketHandler.create(interaction);
+      } else if (interaction.customId.startsWith('ticket_claim_')) {
+        const { default: ticketHandler } = await import('./handlers/ticket.js');
+        await ticketHandler.claim(interaction);
       } else if (interaction.customId.startsWith('ticket_close_')) {
         const { default: ticketHandler } = await import('./handlers/ticket.js');
         await ticketHandler.close(interaction);

@@ -18,7 +18,10 @@ const guildConfigSchema = new mongoose.Schema({
     channelId: { type: String, default: null },
     transcriptChannelId: { type: String, default: null },
     supportRoles: [{ type: String }],
-    maxTickets: { type: Number, default: 3 }
+    maxTickets: { type: Number, default: 3 },
+    panelMessage: { type: String, default: null },
+    createdMessage: { type: String, default: null },
+    buttons: { type: [String], default: [] }
   },
   moderation: {
     logChannelId: { type: String, default: null },
@@ -73,7 +76,7 @@ export async function connectDB() {
 function getDefaultConfig() {
   return {
     shop: { name: 'Sayuri Shop', color: 0x5865F2, status: 'Ouvert 24/7', logo: null, description: null },
-    tickets: { categoryId: null, channelId: null, transcriptChannelId: null, supportRoles: [], maxTickets: 3 },
+    tickets: { categoryId: null, channelId: null, transcriptChannelId: null, supportRoles: [], maxTickets: 3, panelMessage: null, createdMessage: null, buttons: [] },
     moderation: { logChannelId: null, muteRoleId: null },
     announce: { channelId: null },
     giveaway: { channelId: null, hostRole: null },

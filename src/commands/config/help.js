@@ -32,13 +32,13 @@ export default {
       seen.add(cmd.name);
       let folder = 'Autres';
       if (['ban', 'kick', 'mute', 'warn', 'warns', 'clear', 'setlogs'].includes(cmd.name)) folder = 'Modération';
-      else if (['ticketsetup', 'ticketpanel'].includes(cmd.name)) folder = 'Tickets';
+      else if (['ticketsetup', 'ticketpanel', 'ticketmsg', 'ticketbuttons'].includes(cmd.name)) folder = 'Tickets';
       else if (['setcolor', 'setname', 'setstatus', 'setlogo', 'setdescription'].includes(cmd.name)) folder = 'Shop';
       else if (['embed'].includes(cmd.name)) folder = 'Embed';
       else if (['annonce'].includes(cmd.name)) folder = 'Annonces';
       else if (['dmall'].includes(cmd.name)) folder = 'DM';
       else if (['gstart', 'gend', 'greroll', 'gsetchannel'].includes(cmd.name)) folder = 'Giveaway';
-      else if (['stockchannel', 'stockmonitor'].includes(cmd.name)) folder = 'Stock';
+      else if (['stockchannel', 'stockmonitor', 'stock'].includes(cmd.name)) folder = 'Stock';
       else if (['help'].includes(cmd.name)) folder = 'Config';
       if (!cats[folder]) cats[folder] = [];
       cats[folder].push(`\`${prefix}${cmd.name}\` - ${cmd.description || ''}`);
