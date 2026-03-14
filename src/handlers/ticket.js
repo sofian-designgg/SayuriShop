@@ -7,7 +7,6 @@ import {
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
-  PermissionOverwriteType,
   PermissionFlagsBits
 } from 'discord.js';
 import { getGuildConfig } from '../utils/database.js';
@@ -42,11 +41,11 @@ export default {
       type: ChannelType.GuildText,
       parent: tickets.categoryId,
       permissionOverwrites: [
-        { id: interaction.guild.id, type: PermissionOverwriteType.Role, deny: [PermissionFlagsBits.ViewChannel] },
-        { id: interaction.user.id, type: PermissionOverwriteType.Member, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
+        { id: interaction.guild.id, type: 0, deny: [PermissionFlagsBits.ViewChannel] },
+        { id: interaction.user.id, type: 1, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
         ...(tickets.supportRoles || []).map((rid) => ({
           id: rid,
-          type: PermissionOverwriteType.Role,
+          type: 0,
           allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]
         }))
       ]

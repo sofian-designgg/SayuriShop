@@ -1,4 +1,4 @@
-import { PermissionOverwriteType, PermissionFlagsBits } from 'discord.js';
+import { PermissionFlagsBits } from 'discord.js';
 import { getGuildConfig } from '../../utils/database.js';
 
 export default {
@@ -21,7 +21,7 @@ export default {
     if (target.user.bot) return message.channel.send('❌ Tu ne peux pas ajouter un bot.');
     try {
       await message.channel.permissionOverwrites.create(target.id, {
-        type: PermissionOverwriteType.Member,
+        type: 1,
         allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]
       });
       return message.channel.send(`✅ ${target} a été ajouté au ticket.`);
