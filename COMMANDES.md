@@ -48,6 +48,10 @@
 | `+ticketmsg` | `+ticketmsg panel <texte>` | Message du panel |
 | `+ticketmsg` | `+ticketmsg created <texte>` | Message ticket créé (utilise `{user}`) |
 | `+ticketbuttons` | `+ticketbuttons Support\|Vente\|Réclamation` | Boutons du panel (max 5) |
+| `+ticketconfig` | `+ticketconfig category \| panel \| transcript \| max <id>` | Config détaillée |
+| `+ticketadd` | `+ticketadd @user` | Ajouter qqn au ticket (dans un ticket) |
+| `+ticketremove` | `+ticketremove @user` | Retirer qqn du ticket |
+| `+ticketrename` | `+ticketrename nom` | Renommer le ticket |
 
 ---
 

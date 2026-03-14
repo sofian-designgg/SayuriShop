@@ -5,15 +5,15 @@ export default {
   name: 'embed',
   aliases: ['say', 'annembed'],
   description: 'Envoyer un embed personnalisable (avec image possible)',
-  usage: '+embed <titre> | <description> | [url_image]',
+  usage: '+embed <titre> | <description> | [url_image] — utilise \\n pour passer à la ligne',
   async execute(message, args, client) {
     if (!message.member.permissions.has('ManageMessages')) {
       return message.channel.send('❌ Tu dois pouvoir gérer les messages.');
     }
-    const text = args.join(' ');
+    const text = message.content.slice(message.content.indexOf(' ') + 1).trim();
     const parts = text.split('|').map((s) => s.trim());
     const titre = parts[0] || 'Embed';
-    const desc = parts[1] || '';
+    const desc = (parts[1] || '').replace(/\\n/g, '\n');
     const imageUrl = parts[2] || '';
 
     const config = await getGuildConfig(message.guild.id);

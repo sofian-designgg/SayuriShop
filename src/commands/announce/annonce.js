@@ -28,10 +28,10 @@ export default {
     if (!channel) {
       return message.channel.send('❌ Salon des annonces introuvable.');
     }
-    const text = args.join(' ');
+    const text = message.content.slice(message.content.indexOf(' ') + 1).trim();
     const parts = text.split('|').map((s) => s.trim());
     const titre = parts[0] || 'Annonce';
-    const desc = parts[1] || '';
+    const desc = (parts[1] || '').replace(/\\n/g, '\n');
     const imageUrl = parts[2] || '';
 
     const shop = config.shop || {};

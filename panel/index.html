@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sayuri Shop — Générateur de commandes</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #313338;
+      --card: #2b2d31;
+      --input: #1e1f22;
+      --accent: #5865f2;
+      --accent-hover: #4752c4;
+      --text: #dbdee1;
+      --muted: #949ba4;
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .header {
+      background: var(--card);
+      padding: 16px 24px;
+      border-bottom: 1px solid #404249;
+    }
+    .header h1 { margin: 0; font-size: 1.25rem; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 24px; }
+    .row { display: flex; gap: 24px; margin-bottom: 24px; flex-wrap: wrap; }
+    .card {
+      background: var(--card);
+      border-radius: 8px;
+      padding: 20px;
+      flex: 1;
+      min-width: 280px;
+    }
+    .card h2 { margin: 0 0 16px; font-size: 1rem; color: #fff; }
+    label {
+      display: block;
+      margin: 12px 0 4px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--input);
+      border: none;
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 14px;
+    }
+    textarea { min-height: 80px; resize: vertical; }
+    input[type="color"] { height: 40px; padding: 4px; cursor: pointer; }
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 8px;
+      margin-top: 12px;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn-secondary { background: #4e5058; }
+    .btn-secondary:hover { background: #5c5f66; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+    .tab {
+      padding: 10px 20px;
+      background: var(--input);
+      border: none;
+      border-radius: 4px;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .tab.active { background: var(--accent); }
+    .tab:hover:not(.active) { background: #2e3035; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .embed-preview {
+      background: var(--card);
+      border-left: 4px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 16px;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+    .embed-preview .e-title { font-weight: 600; margin-bottom: 8px; }
+    .embed-preview .e-desc { white-space: pre-wrap; margin-bottom: 8px; }
+    .embed-preview .e-footer { color: var(--muted); font-size: 12px; margin-top: 8px; }
+    .embed-preview img { max-width: 100%; border-radius: 4px; margin-top: 8px; }
+    .embed-preview .e-thumb { float: right; max-width: 80px; max-height: 80px; border-radius: 4px; margin-left: 16px; }
+    .command-box {
+      background: var(--input);
+      padding: 12px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 13px;
+      word-break: break-all;
+      margin-top: 12px;
+    }
+    .command-box.multi { white-space: pre-wrap; }
+    .copy-msg { color: #57f287; font-size: 12px; margin-top: 8px; }
+    .step { color: var(--muted); font-size: 0.85rem; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🛒 Sayuri Shop — Générateur de commandes</h1>
+    <p style="margin: 8px 0 0; color: var(--muted); font-size: 0.9rem;">Compose et copie les commandes à utiliser dans Discord. Utilise <code style="background:var(--input);padding:2px 6px;border-radius:4px;">\n</code> ou Entrée pour passer à la ligne.</p>
+  </div>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab active" data-panel="embed">📝 Embed</button>
+      <button class="tab" data-panel="ticket">🎫 Panel ticket</button>
+    </div>
+
+    <div id="panel-embed" class="panel active">
+      <div class="row">
+        <div class="card" style="flex: 1.5;">
+          <h2>Créer un embed</h2>
+          <label>Titre</label>
+          <input type="text" id="embTitle" placeholder="Ex: Nouvelle promo">
+          <label>Description — Entrée ou \n = retour à la ligne</label>
+          <textarea id="embDesc" placeholder="Écris sur plusieurs lignes ou utilise \n"></textarea>
+          <label>Image (URL) — optionnel</label>
+          <input type="url" id="embImage" placeholder="https://...">
+          <label>Couleur</label>
+          <input type="color" id="embColor" value="#5865f2">
+          <label>Footer — optionnel</label>
+          <input type="text" id="embFooter" placeholder="Sayuri Shop">
+          <button class="btn" onclick="genEmbed()">Générer</button>
+          <button class="btn btn-secondary" onclick="copyEmbed()">Copier</button>
+          <div id="embCopyMsg" class="copy-msg"></div>
+          <div id="embCmd" class="command-box" style="display:none;"></div>
+        </div>
+        <div class="card" style="flex: 1;">
+          <h2>Aperçu</h2>
+          <div id="embedPreview" class="embed-preview">
+            <div class="e-title" id="pTitle">Titre</div>
+            <div class="e-desc" id="pDesc">Description</div>
+            <div class="e-footer" id="pFooter">Footer</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-ticket" class="panel">
+      <div class="row">
+        <div class="card" style="flex: 1.5;">
+          <h2>Panel ticket</h2>
+          <label>Message du panel — Entrée ou \n = retour à la ligne</label>
+          <textarea id="tickPanel" placeholder="Cliquez sur un bouton pour ouvrir un ticket.">Cliquez sur un bouton pour ouvrir un ticket.</textarea>
+          <label>Message quand le ticket est créé — {user} = mention, \n = retour à la ligne</label>
+          <textarea id="tickCreated" placeholder="Bonjour {user}, décris ta demande.">Bonjour {user}, décris ta demande. Le support te répondra rapidement.</textarea>
+          <label>Boutons (séparés par |) — max 5</label>
+          <input type="text" id="tickBtns" placeholder="Support | Achat | Autre" value="Support | Achat | Autre">
+          <label>Titre — optionnel (ex: Support)</label>
+          <input type="text" id="tickTitle" placeholder="Support" value="Support">
+          <label>Footer — optionnel</label>
+          <input type="text" id="tickFooter" placeholder="Sayuri Shop" value="Sayuri Shop">
+          <button class="btn" onclick="genTicket()">Générer les commandes</button>
+          <button class="btn btn-secondary" onclick="copyTicket()">Copier tout</button>
+          <div id="tickCopyMsg" class="copy-msg"></div>
+          <div id="tickCmd" class="command-box multi" style="display:none;"></div>
+          <p class="step">1. Copie et exécute les 3 premières commandes dans Discord pour configurer.<br>2. Puis va dans le salon ticket et fais +ticketpanel</p>
+        </div>
+        <div class="card" style="flex: 1;">
+          <h2>Aperçu</h2>
+          <div class="embed-preview" style="border-color: #5865f2;">
+            <div class="e-title" id="tickPreviewTitle">Support</div>
+            <div class="e-desc" id="tickPreviewDesc">Cliquez sur un bouton...</div>
+            <div class="e-footer" id="tickPreviewFooter">Sayuri Shop</div>
+            <div id="tickPreviewBtns" style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+
+    document.querySelectorAll('.tab').forEach(t => {
+      t.onclick = () => {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        $('panel-' + t.dataset.panel).classList.add('active');
+      };
+    });
+
+    function esc(s) {
+      if (!s) return '';
+      return String(s).replace(/\|/g, '\\|').replace(/\n/g, ' ').trim();
+    }
+
+    function updateEmbedPreview() {
+      const title = $('embTitle').value || 'Titre';
+      const desc = $('embDesc').value || 'Description';
+      const img = $('embImage').value;
+      const color = $('embColor').value;
+      const footer = $('embFooter').value || '';
+      $('embedPreview').style.borderColor = color;
+      $('pTitle').textContent = title;
+      $('pDesc').textContent = desc;
+      $('pFooter').textContent = footer;
+      $('pTitle').style.display = title ? 'block' : 'none';
+      $('pDesc').style.display = desc ? 'block' : 'none';
+      $('pFooter').style.display = footer ? 'block' : 'none';
+      $('embedPreview').querySelectorAll('img').forEach(el => el.remove());
+      if (img) $('embedPreview').insertAdjacentHTML('beforeend', '<img src="' + img + '" onerror="this.remove()">');
+      $('pDesc').style.whiteSpace = 'pre-wrap';
+    }
+
+    function genEmbed() {
+      const t = $('embTitle').value.trim() || 'Embed';
+      const d = ($('embDesc').value.trim() || '').replace(/\n/g, '\\n');
+      const img = $('embImage').value.trim();
+      const parts = [t, d];
+      if (img) parts.push(img);
+      const cmd = '+embed ' + parts.map(esc).join(' | ');
+      $('embCmd').textContent = cmd;
+      $('embCmd').style.display = 'block';
+    }
+
+    function copyEmbed() {
+      if (!$('embCmd').textContent) genEmbed();
+      navigator.clipboard.writeText($('embCmd').textContent).then(() => {
+        $('embCopyMsg').textContent = '✓ Copié ! Colle dans Discord.';
+        setTimeout(() => { $('embCopyMsg').textContent = ''; }, 2000);
+      });
+    }
+
+    ['embTitle','embDesc','embImage','embColor','embFooter'].forEach(id => $(id).oninput = updateEmbedPreview);
+
+    function updateTicketPreview() {
+      $('tickPreviewTitle').textContent = $('tickTitle').value || 'Support';
+      $('tickPreviewDesc').textContent = ($('tickPanel').value || 'Cliquez sur un bouton...').replace(/\n/g, '\n');
+      $('tickPreviewDesc').style.whiteSpace = 'pre-wrap';
+      $('tickPreviewFooter').textContent = $('tickFooter').value || 'Sayuri Shop';
+      const btns = ($('tickBtns').value || 'Support | Achat | Autre').split('|').map(s => s.trim()).filter(Boolean).slice(0, 5);
+      $('tickPreviewBtns').innerHTML = btns.map(b => '<span style="background:#5865f2;padding:6px 12px;border-radius:4px;font-size:13px;">' + b + '</span>').join('');
+    }
+
+    function genTicket() {
+      const panel = ($('tickPanel').value.trim() || 'Cliquez sur un bouton pour ouvrir un ticket.').replace(/\n/g, '\\n');
+      const created = ($('tickCreated').value.trim() || 'Bonjour {user}, décris ta demande.').replace(/\n/g, '\\n');
+      const btns = ($('tickBtns').value || 'Support | Achat | Autre').split('|').map(s => s.trim()).filter(Boolean).slice(0, 5).join('|');
+      const cmds = [
+        '+ticketmsg panel ' + panel,
+        '+ticketmsg created ' + created,
+        '+ticketbuttons ' + btns,
+        '',
+        'Puis dans le salon ticket:',
+        '+ticketpanel'
+      ].join('\n');
+      $('tickCmd').textContent = cmds;
+      $('tickCmd').style.display = 'block';
+    }
+
+    function copyTicket() {
+      if (!$('tickCmd').textContent) genTicket();
+      navigator.clipboard.writeText($('tickCmd').textContent).then(() => {
+        $('tickCopyMsg').textContent = '✓ Copié !';
+        setTimeout(() => { $('tickCopyMsg').textContent = ''; }, 2000);
+      });
+    }
+
+    ['tickPanel','tickCreated','tickBtns','tickTitle','tickFooter'].forEach(id => $(id).oninput = updateTicketPreview);
+
+    updateEmbedPreview();
+    updateTicketPreview();
+  </script>
+</body>
+</html>

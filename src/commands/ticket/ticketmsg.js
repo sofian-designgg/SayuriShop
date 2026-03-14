@@ -10,7 +10,7 @@ export default {
       return message.channel.send('❌ Tu dois être administrateur.');
     }
     const type = args[0]?.toLowerCase();
-    const text = args.slice(1).join(' ');
+    const text = args.slice(1).join(' ').replace(/\\n/g, '\n');
 
     if (type !== 'panel' && type !== 'created') {
       return message.channel.send(

@@ -4,6 +4,9 @@ import {
   ButtonStyle,
   ChannelType,
   EmbedBuilder,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
   PermissionOverwriteType,
   PermissionFlagsBits
 } from 'discord.js';
@@ -11,7 +14,7 @@ import { getGuildConfig } from '../utils/database.js';
 
 export default {
   async create(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    if (!interaction.deferred) await interaction.deferReply({ ephemeral: true });
     const config = await getGuildConfig(interaction.guild.id);
     const tickets = config.tickets || {};
     if (!tickets.channelId || !tickets.categoryId) {
@@ -50,6 +53,7 @@ export default {
     });
 
     const createdMsg = (tickets.createdMessage || 'Bonjour {user}, décris ta demande. Le support te répondra rapidement.')
+      .replace(/\\n/g, '\n')
       .replace(/{user}/g, interaction.user.toString());
 
     const shop = config.shop || {};
@@ -70,16 +74,17 @@ export default {
         .setCustomId(`ticket_close_${channel.id}`)
         .setLabel('Fermer le ticket')
         .setStyle(ButtonStyle.Danger)
+        .setEmoji('🔒')
     );
     await channel.send({ content: `${interaction.user}`, embeds: [embed], components: [row1] });
     await interaction.editReply(`✅ Ticket créé : ${channel}`);
   },
 
-  async close(interaction) {
-    const channelId = interaction.customId.replace('ticket_close_', '');
+  async close(interaction, reason = '') {
+    const channelId = interaction.customId.replace(/^ticket_(close|confirm)_/, '');
     const channel = interaction.guild.channels.cache.get(channelId);
     if (!channel) {
-      return interaction.reply({ content: '❌ Salon introuvable.', ephemeral: true });
+      return interaction.reply({ content: '❌ Salon introuvable.', ephemeral: true }).catch(() => {});
     }
     const config = await getGuildConfig(interaction.guild.id);
     const transcriptId = config.tickets?.transcriptChannelId;
@@ -93,7 +98,7 @@ export default {
           .join('\n');
         const embed = new EmbedBuilder()
           .setTitle(`Transcript: ${channel.name}`)
-          .setDescription(text.slice(0, 4000) || 'Aucun message')
+          .setDescription((text.slice(0, 3900) || 'Aucun message') + (reason ? `\n\n**Raison fermeture:** ${reason}` : ''))
           .setColor(0x5865f2)
           .setTimestamp();
         await transcriptChannel.send({ embeds: [embed] });
@@ -103,6 +108,26 @@ export default {
     if (!interaction.replied) {
       await interaction.reply({ content: 'Ticket fermé.', ephemeral: true }).catch(() => {});
     }
+  },
+
+  async showCloseModal(interaction) {
+    const channelId = interaction.customId.replace('ticket_close_', '');
+    const channel = interaction.guild.channels.cache.get(channelId);
+    if (!channel) {
+      return interaction.reply({ content: '❌ Salon introuvable.', ephemeral: true });
+    }
+    const modal = new ModalBuilder()
+      .setCustomId(`ticket_confirm_${channelId}`)
+      .setTitle('Fermer le ticket');
+    const input = new TextInputBuilder()
+      .setCustomId('reason')
+      .setLabel('Raison (optionnel)')
+      .setStyle(TextInputStyle.Paragraph)
+      .setRequired(false)
+      .setPlaceholder('Ex: Problème résolu')
+      .setMaxLength(200);
+    modal.addComponents(new ActionRowBuilder().addComponents(input));
+    await interaction.showModal(modal);
   },
 
   async claim(interaction) {

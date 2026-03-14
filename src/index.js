@@ -94,6 +94,7 @@ client.on('interactionCreate', async (interaction) => {
   if (interaction.isButton()) {
     try {
       if (interaction.customId.startsWith('ticket_create')) {
+        await interaction.deferReply({ ephemeral: true });
         const { default: ticketHandler } = await import('./handlers/ticket.js');
         await ticketHandler.create(interaction);
       } else if (interaction.customId.startsWith('ticket_claim_')) {
@@ -101,13 +102,29 @@ client.on('interactionCreate', async (interaction) => {
         await ticketHandler.claim(interaction);
       } else if (interaction.customId.startsWith('ticket_close_')) {
         const { default: ticketHandler } = await import('./handlers/ticket.js');
-        await ticketHandler.close(interaction);
+        await ticketHandler.showCloseModal(interaction);
       } else if (interaction.customId.startsWith('giveaway_join_')) {
         const { default: gwHandler } = await import('./handlers/giveaway.js');
         await gwHandler.join(interaction);
       }
     } catch (e) {
       console.error('Button handler:', e);
+      try {
+        if (interaction.deferred) {
+          await interaction.editReply('❌ Erreur: ' + (e.message || 'Réessaie.')).catch(() => {});
+        } else if (!interaction.replied) {
+          await interaction.reply({ content: '❌ Erreur: ' + (e.message || 'Réessaie.'), ephemeral: true }).catch(() => {});
+        }
+      } catch {}
+    }
+  }
+  if (interaction.isModalSubmit() && interaction.customId.startsWith('ticket_confirm_')) {
+    try {
+      const reason = interaction.fields.getTextInputValue('reason') || '';
+      const { default: ticketHandler } = await import('./handlers/ticket.js');
+      await ticketHandler.close(interaction, reason);
+    } catch (e) {
+      console.error('Modal handler:', e);
     }
   }
   if (interaction.isStringSelectMenu() && interaction.customId === 'ticket_category') {

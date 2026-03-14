@@ -14,6 +14,9 @@ MONGO_URL=mongodb+srv://...
 4. Sur Railway : ajoute MongoDB, copie l'URL de connexion dans `MONGO_URL`
 5. `npm start`
 
+### Générateur de commandes (optionnel)
+Ouvre `panel/index.html` dans ton navigateur pour générer les commandes +embed et +ticket (aucune installation).
+
 ## Commandes
 
 ### Shop

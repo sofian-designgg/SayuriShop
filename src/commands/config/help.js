@@ -32,7 +32,7 @@ export default {
       seen.add(cmd.name);
       let folder = 'Autres';
       if (['ban', 'kick', 'mute', 'warn', 'warns', 'clear', 'setlogs'].includes(cmd.name)) folder = 'Modération';
-      else if (['ticketsetup', 'ticketpanel', 'ticketmsg', 'ticketbuttons'].includes(cmd.name)) folder = 'Tickets';
+      else if (['ticketsetup', 'ticketpanel', 'ticketmsg', 'ticketbuttons', 'ticketconfig', 'ticketadd', 'ticketremove', 'ticketrename'].includes(cmd.name)) folder = 'Tickets';
       else if (['setcolor', 'setname', 'setstatus', 'setlogo', 'setdescription'].includes(cmd.name)) folder = 'Shop';
       else if (['embed'].includes(cmd.name)) folder = 'Embed';
       else if (['annonce'].includes(cmd.name)) folder = 'Annonces';
